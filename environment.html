@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MEDSPHERE IoT Sensor Dashboard</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Oswald:wght@200..700&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"
+        rel="stylesheet">
+    <link rel="shortcut icon" type="image/jpg" href="logo.jpg" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #212223;
+            --secondary-color: #50c878;
+            --accent-color: #ff6b6b;
+            --background-color: #f0f7ff;
+            --text-color: #333;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 80px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 50px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            transition: background 0.3s ease;
+
+        }
+
+        nav.active {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Logo */
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #272626;
+            font-family: 'Poppins', sans-serif;
+            text-transform: uppercase;
+        }
+
+        /* Navbar Links */
+        nav ul {
+            list-style: none;
+            display: flex;
+            gap: 35px;
+        }
+
+        nav ul li {
+            position: relative;
+        }
+
+        nav ul li a {
+            color: #000;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: color 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        nav ul li a:hover {
+            color: #007bff;
+        }
+
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0%;
+            height: 2px;
+            background-color: #007bff;
+            transition: width 0.3s ease;
+        }
+
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+
+        /* CTA Button */
+        .cta-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-size: 1rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Hamburger Icon (Mobile) */
+        .menu-icon {
+            display: none;
+            font-size: 2rem;
+            cursor: pointer;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 868px) {
+            nav ul {
+                display: none;
+                flex-direction: column;
+                position: fixed;
+                top: 80px;
+                left: 0;
+                width: 100%;
+                height: calc(100% - 80px);
+                background-color: rgba(255, 255, 255, 0);
+                padding-top: 20px;
+                align-items: center;
+            }
+
+            nav ul.active {
+                display: flex;
+            }
+
+            .menu-icon {
+                display: block;
+                color: #000;
+            }
+        }
+
+
+        /* Main content wrapper */
+        .main {
+            transition: filter 0.3s ease;
+        }
+
+        /* Blur effect when menu is active */
+        .blur {
+            filter: blur(5px);
+            /* Adjust the blur radius as needed */
+        }
+
+        @media (min-width: 868px) {
+            nav ul {
+                display: flex !important;
+            }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            /* background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); */
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            margin-bottom: 30px;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 10vh;
+
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .card h2 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--accent-color);
+            padding-bottom: 10px;
+        }
+
+        .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: var(--accent-color);
+            text-align: center;
+        }
+
+        .chart-container {
+            width: 100%;
+            height: 200px;
+            margin-top: 20px;
+        }
+
+        .weather-card {
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            position: relative;
+        }
+
+        .weather-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0) 80%);
+            transform: rotate(30deg);
+            pointer-events: none;
+        }
+
+        .weather-icon {
+            font-size: 5rem;
+            text-align: center;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .weather-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            text-align: center;
+            color: var(--text-color);
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .input-form {
+            background: linear-gradient(135deg, rgba(74, 144, 226, 0.1), rgba(80, 200, 120, 0.1));
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 10vh;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid rgb(45, 168, 230);
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background-color: #ffffff27;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(80, 200, 120, 0.3);
+        }
+
+        .submit-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins';
+        }
+
+        .submit-btn:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header id="navbar">
+        <nav>
+            <div class="logo">MedSphere</div>
+            <ul id="nav-links">
+                <li><a href='/'><i class="fas fa-home"></i> Home</a></li>
+                <li><a href='/dashboard'><i class="fas fa-chart-line"></i> Dashboard</a></li>
+                <li><a href='/lab'><i class="fas fa-flask"></i> Laboratory Test</a></li>
+                <li><a href='/quality'><i class="fas fa-check-circle"></i> Quality Status</a></li>
+                <li><a href='/environment'><i class="fas fa-leaf"></i> Check Environment</a></li>
+            </ul>
+            <div class="menu-icon" id="menu-icon" onclick="toggleMenu()">
+                <i class="fas fa-bars"></i>
+            </div>
+        </nav>
+        <main class="main">
+            <div class="container">
+                <form class="input-form" id="vehicleForm">
+                    <div class="input-group">
+                        <label for="vehicleNumber">Vehicle Number:</label>
+                        <input type="text" id="vehicleNumber" name="vehicleNumber" required
+                            placeholder="Enter vehicle number">
+                    </div>
+                    <div class="input-group">
+                        <label for="vehicleId">Vehicle ID:</label>
+                        <input type="text" id="vehicleId" name="vehicleId" required placeholder="Enter vehicle ID">
+                    </div>
+                    <button type="submit" class="submit-btn">Start Monitoring</button>
+                </form>
+                <div class="dashboard">
+                    <div class="card">
+                        <h2>Temperature</h2>
+                        <div class="value pulse" id="temperature">--°C</div>
+                        <div class="chart-container">
+                            <canvas id="temperatureChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card">
+                        <h2>Humidity</h2>
+                        <div class="value pulse" id="humidity">--%</div>
+                        <div class="chart-container">
+                            <canvas id="humidityChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="card weather-card">
+                        <h2>Weather Condition</h2>
+                        <div class="weather-icon" id="weatherIcon">🌤️</div>
+                        <div class="weather-value" id="weather">--</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script>
+            function toggleMenu() {
+                const navLinks = document.getElementById('nav-links');
+                const mainContent = document.querySelector('.main');
+                navLinks.classList.toggle('active');
+                mainContent.classList.toggle('blur');
+            }
+            // Simulated IoT sensor data
+            function generateRandomData(min, max) {
+                return Math.random() * (max - min) + min;
+            }
+
+            function updateSensorData() {
+                const temperature = generateRandomData(15, 30).toFixed(1);
+                const humidity = generateRandomData(30, 70).toFixed(1);
+                const weatherConditions = ['Sunny', 'Cloudy', 'Rainy', 'Windy'];
+                const weather = weatherConditions[Math.floor(Math.random() * weatherConditions.length)];
+
+                document.getElementById('temperature').textContent = `${temperature}°C`;
+                document.getElementById('humidity').textContent = `${humidity}%`;
+                document.getElementById('weather').textContent = weather;
+
+                // Update weather icon
+                const weatherIcons = {
+                    'Sunny': '☀️',
+                    'Cloudy': '☁️',
+                    'Rainy': '🌧️',
+                    'Windy': '💨'
+                };
+                document.getElementById('weatherIcon').textContent = weatherIcons[weather];
+
+                updateChart(temperatureChart, temperature);
+                updateChart(humidityChart, humidity);
+            }
+
+            function updateChart(chart, newValue) {
+                chart.data.labels.push(new Date().toLocaleTimeString());
+                chart.data.datasets[0].data.push(newValue);
+
+                if (chart.data.labels.length > 10) {
+                    chart.data.labels.shift();
+                    chart.data.datasets[0].data.shift();
+                }
+
+                chart.update();
+            }
+
+            // Initialize charts
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false
+                    }
+                },
+                elements: {
+                    line: {
+                        tension: 0.4
+                    }
+                }
+            };
+
+            const temperatureChart = new Chart(document.getElementById('temperatureChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Temperature (°C)',
+                        data: [],
+                        borderColor: 'rgb(255, 99, 132)',
+                        backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                        fill: true
+                    }]
+                },
+                options: chartOptions
+            });
+
+            const humidityChart = new Chart(document.getElementById('humidityChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Humidity (%)',
+                        data: [],
+                        borderColor: 'rgb(54, 162, 235)',
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        fill: true
+                    }]
+                },
+                options: chartOptions
+            });
+
+            // Form submission handler
+            document.getElementById('vehicleForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                const vehicleNumber = document.getElementById('vehicleNumber').value;
+                const vehicleId = document.getElementById('vehicleId').value;
+                console.log('Monitoring started for Vehicle Number:', vehicleNumber, 'and Vehicle ID:', vehicleId);
+                // Here you would typically start the actual monitoring process
+                // For this example, we'll just start updating the dashboard
+                setInterval(updateSensorData, 5000);
+                updateSensorData(); // Initial update
+            });
+        </script>
+</body>
+
+</html>
